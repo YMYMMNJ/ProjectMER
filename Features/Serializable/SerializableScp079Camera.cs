@@ -47,23 +47,7 @@ public class SerializableScp079Camera : SerializableObject
 	}
 
 
-	private Scp079CameraToy CameraPrefab
-	{
-		get
-		{
-			Scp079CameraToy prefab = CameraType switch
-			{
-				CameraType.Lcz => PrefabManager.CameraLcz,
-				CameraType.Hcz => PrefabManager.CameraHcz,
-				CameraType.Ez => PrefabManager.CameraEz,
-				CameraType.EzArm => PrefabManager.CameraEzArm,
-				CameraType.Sz => PrefabManager.CameraSz,
-				_ => throw new InvalidOperationException(),
-			};
-
-			return prefab;
-		}
-	}
+	private Scp079CameraToy CameraPrefab => PrefabManager.GetCamera(CameraType) ?? throw new InvalidOperationException();
 
 	public override bool RequiresReloading => CameraType != _prevType || base.RequiresReloading;
 

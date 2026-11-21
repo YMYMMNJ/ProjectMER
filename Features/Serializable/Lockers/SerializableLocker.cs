@@ -97,34 +97,7 @@ public class SerializableLocker : SerializableObject
 		}
 	}
 
-	private Locker LockerPrefab
-	{
-		get
-		{
-			Locker prefab = LockerType switch
-			{
-				LockerType.PedestalScp500 => PrefabManager.PedestalScp500,
-				LockerType.LargeGun => PrefabManager.LockerLargeGun,
-				LockerType.RifleRack => PrefabManager.LockerRifleRack,
-				LockerType.Misc => PrefabManager.LockerMisc,
-				LockerType.Medkit => PrefabManager.LockerRegularMedkit,
-				LockerType.Adrenaline => PrefabManager.LockerAdrenalineMedkit,
-				LockerType.PedestalScp018 => PrefabManager.PedestalScp018,
-				LockerType.PedestalScp207 => PrefabManager.PedstalScp207,
-				LockerType.PedestalScp244 => PrefabManager.PedestalScp244,
-				LockerType.PedestalScp268 => PrefabManager.PedestalScp268,
-				LockerType.PedestalScp1853 => PrefabManager.PedstalScp1853,
-				LockerType.PedestalScp2176 => PrefabManager.PedestalScp2176,
-				LockerType.PedestalScpScp1576 => PrefabManager.PedestalScp1576,
-				LockerType.PedestalAntiScp207 => PrefabManager.PedestalAntiScp207,
-				LockerType.PedestalScp1344 => PrefabManager.PedestalScp1344,
-				LockerType.ExperimentalWeapon => PrefabManager.LockerExperimentalWeapon,
-				_ => throw new InvalidOperationException(),
-			};
-
-			return prefab;
-		}
-	}
+	private Locker LockerPrefab => PrefabManager.GetLocker(LockerType) ?? throw new InvalidOperationException();
 
 	public override bool RequiresReloading => true;
 

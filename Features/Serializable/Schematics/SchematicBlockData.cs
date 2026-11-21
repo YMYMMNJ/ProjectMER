@@ -6,8 +6,13 @@ using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;
 using UnityEngine;
+using CameraType = ProjectMER.Features.Enums.CameraType;
 using LightSourceToy = AdminToys.LightSourceToy;
+using Locker = MapGeneration.Distributors.Locker;
+using LockerType = ProjectMER.Features.Enums.LockerType;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
+using Scp079CameraToy = AdminToys.Scp079CameraToy;
+using StructurePositionSync = MapGeneration.Distributors.StructurePositionSync;
 using TextToy = AdminToys.TextToy;
 using WaypointToy = AdminToys.WaypointToy;
 
@@ -45,6 +50,8 @@ public class SchematicBlockData
 			BlockType.Text => CreateText(),
 			BlockType.Interactable => CreateInteractable(),
 			BlockType.Waypoint => CreateWaypoint(),
+			BlockType.Locker => CreateLocker(),
+			BlockType.Camera => CreateCamera(),
 			_ => CreateEmpty(true)
 		};
 
@@ -62,6 +69,18 @@ public class SchematicBlockData
 				BlockType.Empty when Scale == Vector3.zero => Vector3.one,
 				_ => Scale
 			};
+
+		// These values depend on the final world transform, so they can only be set after the block has been parented and positioned.
+		if (BlockType == BlockType.Locker && gameObject.TryGetComponent(out StructurePositionSync structurePositionSync))
+		{
+			structurePositionSync.Network_position = transform.position;
+			structurePositionSync.Network_rotationY = (sbyte)Mathf.RoundToInt(transform.rotation.eulerAngles.y / 5.625f);
+		}
+		else if (BlockType == BlockType.Camera && gameObject.TryGetComponent(out Scp079CameraToy cameraToy))
+		{
+			cameraToy.NetworkScale = transform.localScale;
+			cameraToy.NetworkRoom = RoomExtensions.GetRoomAtPosition(transform.position).Base;
+		}
 
 		if (gameObject.TryGetComponent(out AdminToyBase adminToyBase))
 		{
@@ -186,5 +205,57 @@ public class SchematicBlockData
 		waypoint.NetworkPriority = byte.MaxValue;
 
 		return waypoint.gameObject;
+	}
+
+	private GameObject CreateLocker()
+	{
+		LockerType lockerType = GetEnumProperty("LockerType", LockerType.PedestalScp500);
+
+		Locker? prefab = PrefabManager.GetLocker(lockerType);
+		if (prefab == null)
+		{
+			Logger.Warn($"Locker block \"{Name}\" has an invalid LockerType ({lockerType}). Object will be an empty GameObject instead.");
+			return CreateEmpty();
+		}
+
+		return GameObject.Instantiate(prefab).gameObject;
+	}
+
+	private GameObject CreateCamera()
+	{
+		CameraType cameraType = GetEnumProperty("CameraType", CameraType.Lcz);
+
+		Scp079CameraToy? prefab = PrefabManager.GetCamera(cameraType);
+		if (prefab == null)
+		{
+			Logger.Warn($"Camera block \"{Name}\" has an invalid CameraType ({cameraType}). Object will be an empty GameObject instead.");
+			return CreateEmpty();
+		}
+
+		Scp079CameraToy camera = GameObject.Instantiate(prefab);
+		camera.NetworkLabel = Properties != null && Properties.TryGetValue("Label", out object label) && label != null ? Convert.ToString(label) : "CustomCamera";
+
+		return camera.gameObject;
+	}
+
+	/// <summary>
+	/// Reads an enum from <see cref="Properties"/>. Accepts either the enum name (case-insensitive) or its numeric value.
+	/// </summary>
+	private T GetEnumProperty<T>(string key, T fallback) where T : struct, Enum
+	{
+		if (Properties == null || !Properties.TryGetValue(key, out object value) || value == null)
+			return fallback;
+
+		if (value is string text)
+			return Enum.TryParse(text, true, out T parsed) ? parsed : fallback;
+
+		try
+		{
+			return (T)Enum.ToObject(typeof(T), Convert.ToInt32(value));
+		}
+		catch (Exception)
+		{
+			return fallback;
+		}
 	}
 }

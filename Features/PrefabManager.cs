@@ -6,6 +6,8 @@ using Mirror;
 using UnityEngine;
 using LightSourceToy = AdminToys.LightSourceToy;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
+using CameraType = ProjectMER.Features.Enums.CameraType;
+using LockerType = ProjectMER.Features.Enums.LockerType;
 
 namespace ProjectMER.Features;
 
@@ -58,6 +60,45 @@ public static class PrefabManager
 
 	public static WaypointToy Waypoint { get; private set; }
 	public static SpawnableCullingParent CullingParent { get; private set; }
+
+	/// <summary>
+	/// Gets the locker prefab that corresponds to the given <see cref="LockerType"/>.
+	/// </summary>
+	/// <returns>The prefab, or <see langword="null"/> if the type has no prefab.</returns>
+	public static Locker? GetLocker(LockerType lockerType) => lockerType switch
+	{
+		LockerType.PedestalScp500 => PedestalScp500,
+		LockerType.LargeGun => LockerLargeGun,
+		LockerType.RifleRack => LockerRifleRack,
+		LockerType.Misc => LockerMisc,
+		LockerType.Medkit => LockerRegularMedkit,
+		LockerType.Adrenaline => LockerAdrenalineMedkit,
+		LockerType.PedestalScp018 => PedestalScp018,
+		LockerType.PedestalScp207 => PedstalScp207,
+		LockerType.PedestalScp244 => PedestalScp244,
+		LockerType.PedestalScp268 => PedestalScp268,
+		LockerType.PedestalScp1853 => PedstalScp1853,
+		LockerType.PedestalScp2176 => PedestalScp2176,
+		LockerType.PedestalScpScp1576 => PedestalScp1576,
+		LockerType.PedestalAntiScp207 => PedestalAntiScp207,
+		LockerType.PedestalScp1344 => PedestalScp1344,
+		LockerType.ExperimentalWeapon => LockerExperimentalWeapon,
+		_ => null,
+	};
+
+	/// <summary>
+	/// Gets the SCP-079 camera prefab that corresponds to the given <see cref="CameraType"/>.
+	/// </summary>
+	/// <returns>The prefab, or <see langword="null"/> if the type has no prefab.</returns>
+	public static Scp079CameraToy? GetCamera(CameraType cameraType) => cameraType switch
+	{
+		CameraType.Lcz => CameraLcz,
+		CameraType.Hcz => CameraHcz,
+		CameraType.Ez => CameraEz,
+		CameraType.EzArm => CameraEzArm,
+		CameraType.Sz => CameraSz,
+		_ => null,
+	};
 
 	public static void RegisterPrefabs()
 	{
