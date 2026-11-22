@@ -1,11 +1,18 @@
 using AdminToys;
+using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items.Firearms.Attachments;
 using LabApi.Features.Wrappers;
+using MapGeneration;
+using MapGeneration.Distributors;
+using Mirror;
 using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
+using ProjectMER.Features.Extensions.ObjectTypeExtensions;
 using ProjectMER.Features.Objects;
+using System.Reflection.Emit;
 using UnityEngine;
+using CameraType = ProjectMER.Features.Enums.CameraType;
 using LightSourceToy = AdminToys.LightSourceToy;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 using TextToy = AdminToys.TextToy;
@@ -35,7 +42,8 @@ public class SchematicBlockData
 
 	public GameObject Create(SchematicObject schematicObject, Transform parentTransform)
 	{
-		GameObject gameObject = BlockType switch
+		Room? room = Room.GetRoomAtPosition(schematicObject.Position) ?? Room.Get(RoomName.Outside).First();
+        GameObject gameObject = BlockType switch
 		{
 			BlockType.Empty => CreateEmpty(),
 			BlockType.Primitive => CreatePrimitive(),
@@ -45,16 +53,40 @@ public class SchematicBlockData
 			BlockType.Text => CreateText(),
 			BlockType.Interactable => CreateInteractable(),
 			BlockType.Waypoint => CreateWaypoint(),
+			BlockType.Door => CreateDoor(),
+			BlockType.Camera => CreateCamera(schematicObject),
 			_ => CreateEmpty(true)
 		};
 
 		gameObject.name = Name;
 
-		Transform transform = gameObject.transform;
-		transform.SetParent(parentTransform);
-		transform.SetLocalPositionAndRotation(Position, Quaternion.Euler(Rotation));
-		
-		if (BlockType == BlockType.Waypoint)
+		var pos = Position;
+		var rot = Quaternion.Euler(Rotation);
+
+        Transform transform = gameObject.transform;
+
+		if (!gameObject.TryGetComponent(out DoorVariant door))
+		{
+            transform.SetParent(parentTransform);
+            transform.SetLocalPositionAndRotation(pos, rot);
+        }
+		else
+		{
+			//なぜ正しい部屋に沸かせるためにこんな遠回りをしなければならないのか。
+			door.Rooms = [room?.Base];
+
+			pos = room.Transform.TransformPoint(pos);
+			rot = Quaternion.Euler(Rotation + room.Rotation.eulerAngles);
+
+			transform.SetPositionAndRotation(pos, rot);
+
+			Logger.Info(transform.position);
+			Logger.Info(Position);
+            NetworkServer.UnSpawn(gameObject);
+            NetworkServer.Spawn(gameObject);
+        }
+
+        if (BlockType == BlockType.Waypoint)
 			gameObject.GetComponent<WaypointToy>().NetworkBoundsSize = Scale;
 		else
 			transform.localScale = BlockType switch
@@ -75,7 +107,7 @@ public class SchematicBlockData
 			}
 		}
 
-		return gameObject;
+        return gameObject;
 	}
 
 	private GameObject CreateEmpty(bool fallback = false)
@@ -187,4 +219,46 @@ public class SchematicBlockData
 
 		return waypoint.gameObject;
 	}
+	private GameObject CreateDoor()
+	{
+		DoorType doortype = (DoorType)Convert.ToInt32(Properties["DoorType"]); 
+
+		var door = GameObject.Instantiate(doortype.GetDoorPrefab());
+
+        if (door.TryGetComponent(out DoorRandomInitialStateExtension doorRandomInitialStateExtension))
+            GameObject.Destroy(doorRandomInitialStateExtension);
+
+		SetupDoor();
+
+        return door.gameObject;
+
+		void SetupDoor()
+		{
+            bool reqAll = Convert.ToBoolean(Properties["RequireAll"]);
+            var perm = (DoorPermissionFlags)Convert.ToInt16(Properties["RequiredPermissions"]);
+            bool IsOpen = Convert.ToBoolean(Properties["IsOpen"]);
+            bool IsLocked = Convert.ToBoolean(Properties["IsLocked"]);
+            
+			door.NetworkTargetState = IsOpen;
+			door.ServerChangeLock(DoorLockReason.SpecialDoorFeature, IsLocked);
+            door.RequiredPermissions = new DoorPermissionsPolicy(perm, reqAll);
+        }
+    }
+	private GameObject CreateCamera(SchematicObject schematicObject)
+	{
+		var room = Room.GetRoomAtPosition(schematicObject.Position);
+
+		CameraType camtype = (CameraType)Convert.ToInt32(Properties["CameraType"]); 
+		var cam = GameObject.Instantiate(camtype.GetCameraPrefab());
+        cam.NetworkMovementSmoothing = 60;
+        cam.NetworkRoom = room == null ? Room.Get(RoomName.Outside).First().Base : room.Base;
+
+        if (Properties.TryGetValue("Label", out object val))
+		{
+			string label = Convert.ToString(val);
+            cam.NetworkLabel = label;
+        }
+
+        return cam.gameObject;
+    }
 }

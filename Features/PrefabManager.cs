@@ -55,7 +55,6 @@ public static class PrefabManager
 	public static Locker PedestalAntiScp207 { get; private set; }
 	public static Locker PedestalScp1344 { get; private set; }
 	public static Locker LockerExperimentalWeapon { get; private set; }
-
 	public static WaypointToy Waypoint { get; private set; }
 	public static SpawnableCullingParent CullingParent { get; private set; }
 

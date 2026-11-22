@@ -1,0 +1,72 @@
+<Project>
+	<Target Name="DeleteConfig" AfterTargets="Build">
+		<Delete Files="$(OutputPath)$(AssemblyName).dll.config" />
+	</Target>
+	<PropertyGroup>
+		<RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+		<RepoReferences>$(RepoRoot)..\.Dev\</RepoReferences>
+		<BuildOutput>$(RepoRoot)Builds\</BuildOutput>
+		<OutputPath>$(RepoRoot)Builds</OutputPath>
+		<UseCommonOutputDirectory>true</UseCommonOutputDirectory>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<GenerateDependencyFile>false</GenerateDependencyFile>
+		<GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Northwood.LabAPI" Version="1.1.7" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="0Harmony">
+			<HintPath>$(RepoReferences)0Harmony.dll</HintPath>
+		</Reference>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>$(RepoReferences)Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="Assembly-CSharp-firstpass">
+			<HintPath>$(RepoReferences)Assembly-CSharp-firstpass.dll</HintPath>
+		</Reference>
+		<Reference Include="CommandSystem.Core">
+			<HintPath>$(RepoReferences)\CommandSystem.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="Mirror">
+			<HintPath>$(RepoReferences)Mirror.dll</HintPath>
+		</Reference>
+		<Reference Include="mscorlib">
+			<HintPath>$(RepoReferences)mscorlib.dll</HintPath>
+		</Reference>
+		<Reference Include="NorthwoodLib">
+			<HintPath>$(RepoReferences)NorthwoodLib.dll</HintPath>
+		</Reference>
+		<Reference Include="Pooling">
+			<HintPath>$(RepoReferences)Pooling.dll</HintPath>
+		</Reference>
+		<Reference Include="mscorlib">
+			<HintPath>$(RepoReferences)mscorlib.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.TextMeshPro">
+			<HintPath>$(RepoReferences)Unity.TextMeshPro.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine">
+			<HintPath>$(RepoReferences)UnityEngine.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AnimationModule">
+			<HintPath>$(RepoReferences)UnityEngine.AnimationModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AssetBundleModule">
+			<HintPath>$(RepoReferences)UnityEngine.AssetBundleModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.PhysicsModule">
+			<HintPath>$(RepoReferences)UnityEngine.PhysicsModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>$(RepoReferences)UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.JSONSerializeModule">
+			<HintPath>$(RepoReferences)UnityEngine.JSONSerializeModule.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+</Project>

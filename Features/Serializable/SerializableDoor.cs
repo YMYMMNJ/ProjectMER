@@ -3,6 +3,7 @@ using LabApi.Features.Wrappers;
 using Mirror;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
+using ProjectMER.Features.Extensions.ObjectTypeExtensions;
 using UnityEngine;
 
 namespace ProjectMER.Features.Serializable;
@@ -52,24 +53,7 @@ public class SerializableDoor : SerializableObject
 		doorVariant.RequiredPermissions = new DoorPermissionsPolicy(RequiredPermissions, RequireAll);
 	}
 
-	private DoorVariant DoorPrefab
-	{
-		get
-		{
-			DoorVariant prefab = DoorType switch
-			{
-				DoorType.Lcz => PrefabManager.DoorLcz,
-				DoorType.Hcz => PrefabManager.DoorHcz,
-				DoorType.Ez => PrefabManager.DoorEz,
-				DoorType.Bulkdoor => PrefabManager.DoorHeavyBulk,
-				DoorType.Gate => PrefabManager.DoorGate,
-				_ => throw new InvalidOperationException(),
-			};
-
-			return prefab;
-		}
-	}
-
+	private DoorVariant DoorPrefab => DoorType.GetDoorPrefab();
 	public override bool RequiresReloading => DoorType != _prevType || base.RequiresReloading;
 
 	internal DoorType _prevType;
